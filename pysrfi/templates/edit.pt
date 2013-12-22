@@ -1,0 +1,52 @@
+<html metal:use-macro="load: page-base.pt">
+
+    <div class="bs-sidebar" metal:fill-slot="toc">
+        <h1>Versions</h1>
+        <ul>
+            <li>0 - ...</li>
+        </ul>
+    </div>
+
+    <div metal:fill-slot="body">
+        <form role="form" action="/${page}/@@edit" method="post">
+          <input type="hidden" name="_id" value="${_id}" />
+          <input type="hidden" name="_rev" value="${_rev}" />
+
+          <div class="form-group">
+            <label for="exampleInputEmail1">Srfi-code:</label>
+            <input type="text" class="form-control" placeholder="" value="${page}" />
+          </div>
+
+          <div class="form-group">
+            <label for="exampleInputEmail1">Content:</label>
+            <select name="status">
+                <option>final</option>
+                <option>active</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="exampleInputEmail1">Title:</label>
+            <input type="text" class="form-control" name="title" placeholder="" value="${title}" />
+          </div>
+
+          <div class="form-group">
+            <label for="exampleInputEmail1">Author:</label>
+            <input type="text" class="form-control" name="author" placeholder="" value="${author}" />
+          </div>
+
+          <div class="form-group">
+            <label for="exampleInputEmail1">Content:</label>
+            <textarea class="form-control" name="content" placeholder="">${content}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="exampleInputFile">Implementation</label>
+            <input type="file" id="exampleInputFile">
+            <p class="help-block">Download an implementation file.</p>
+          </div>
+
+          <button type="submit" class="btn btn-default">Submit</button>
+        </form>
+    </div>
+</html>

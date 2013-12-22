@@ -1,0 +1,33 @@
+<html metal:use-macro="load: page-base.pt">
+
+    <div data-spy="affix" data-offset-top="60" data-offset-bottom="200" class="bs-sidebar" metal:fill-slot="toc">
+        ${structure: toc}
+    </div>
+
+    <div metal:fill-slot="body">
+        <dl class="dl-horizontal">
+            <dt>SRFI</dt>
+            <dd>4</dd>
+
+            <dt>Title</dt>
+            <dd>${title}</dd>
+
+            <dt>Author</dt>
+            <dd>${author}</dd>
+
+            <dt>Version</dt>
+            <dd>${version}</dd>
+
+            <dt>Last-Modified</dt>
+            <dd>${date}</dd>
+
+            <dt>Status</dt>
+            <dd>final</dd>
+
+            <dt>Created</dt>
+            <dd>---</dd>
+        </dl>
+        <hr />
+        ${structure: content}<br />
+    </div>
+</html>
