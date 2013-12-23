@@ -3,18 +3,13 @@ from pyramid.events import subscriber, ApplicationCreated
 from couchdbkit import *
 import datetime
 from datetime import datetime
-from models import Page, Literal, Srfi
 from markdown import markdown as _m, Markdown
-from factory import Site
 from logging import getLogger
 
+from ..factory import Site
+from ..models import Page, Literal, Srfi
+
 logger = getLogger(__file__)
-
-asis = """
-Copyright (C) %(name) (%(year)s). All Rights Reserved.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
 
 exts = ['def_list', 'tables', 'fenced_code', 'toc', 'abbr', 'footnotes']
 
@@ -51,13 +46,13 @@ def application_created_subscriber(event):
 
         db.save_doc(design_doc)
 
-@view_config(context=Site, renderer='templates/home.pt')
+@view_config(context=Site, renderer='home.mako')
 def home(request):
     return {
         'project': 'pyramid_couchdb_example'
     }
 
-@view_config(name="versions", doc_type='Page', renderer='templates/versions.pt')
+@view_config(name="versions", doc_type='Srfi', renderer='versions.mako')
 def versions(request):
     versions = []
     for i in request.context.__context:
@@ -72,7 +67,7 @@ def versions(request):
         'author': request.context.get('author'),
     }
 
-@view_config(name="version", doc_type='Page', renderer='templates/page.pt')
+@view_config(name="version", doc_type='Srfi', renderer='srfi.mako')
 def version(request):
     doc = {}
     version = request.subpath[0]
@@ -91,7 +86,7 @@ def version(request):
         'version': doc.get('version', 0)
     }
 
-@view_config(name="save", doc_type='Page', renderer='templates/page.pt')
+@view_config(name="save", doc_type='Srfi', renderer='srfi.mako')
 def save(request):
     doc = request.context
 
@@ -128,7 +123,7 @@ def save(request):
         'version': page.version
     }
 
-@view_config(name="edit", doc_type='Srfi', renderer='templates/page.pt', request_method="POST")
+@view_config(name="edit", doc_type='Srfi', renderer='srfi.mako', request_method="POST")
 def edit_post(request):
     doc = request.context
     params = request.params
@@ -162,12 +157,11 @@ def edit_post(request):
         'version': doc.get('version', 0)
     }
 
-@view_config(name="edit", doc_type='Srfi', renderer='templates/edit.pt')
+@view_config(name="edit", doc_type='Srfi', renderer='edit.mako')
 def edit(request):
     return request.context
 
-@view_config(doc_type='Srfi', renderer='templates/page.pt')
-@view_config(doc_type='Page', renderer='templates/page.pt')
+@view_config(doc_type='Srfi', renderer='srfi.mako')
 def show(request):
 
     doc = request.context
