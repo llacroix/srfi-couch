@@ -1,7 +1,8 @@
 from pyramid.view import view_config
 from pyramid.events import subscriber, ApplicationCreated
 from couchdbkit import *
-import datetime
+
+import time
 from datetime import datetime
 from markdown import markdown as _m, Markdown
 from logging import getLogger
@@ -16,43 +17,36 @@ exts = ['def_list', 'tables', 'fenced_code', 'toc', 'abbr', 'footnotes']
 def markdown(text):
     return _m(text, extensions=exts)
 
-@subscriber(ApplicationCreated)
-def application_created_subscriber(event):
-    registry = event.app.registry
-    db = registry.db.get_or_create_db(registry.settings['couchdb.db'])
+def mark2(text):
+    md = Markdown(extensions=exts)
+    text = md.convert(text)
+    return (text, md.toc)
 
-    Document.set_db(db)
+def process_content(obj):
+    obj["content"], obj["toc"] = mark2(obj["content"])
+    return obj
 
-    pages_view_exists = db.doc_exist('_design/lists')
+def datetime_to_int(thetime):
+    return time.mktime(thetime.timetuple()) * 1e3
 
-    if pages_view_exists == False:
-        design_doc = {
-            '_id': '_design/lists',
-            'language': 'javascript',
-            'views': {
-                'pages': {
-                    'map': '''
-                        function(doc) {
-                            if (doc.doc_type === 'Page' || doc.doc_type === 'Srfi') {
-                                emit([doc.page,
-                                      doc.version ? -doc.version : 0],
-                                     null)
-                            }
-                        }
-                    '''
-                }
-            }
-        }
+def update_doc(document, params):
+    now = datetime.now()
 
-        db.save_doc(design_doc)
+    doc = document.copy()
 
-@view_config(context=Site, renderer='home.mako')
-def home(request):
-    return {
-        'project': 'pyramid_couchdb_example'
-    }
+    doc.update({
+        "title": params.get("title"),
+        "author": params.get("author"),
+        "content": params.get("content"),
+        "status": params.get("status"),
+        "updated": datetime_to_int(now),
+        "previous": params.get("_id"),
+        "version": document.get("version") + 1,
+    })
 
-@view_config(name="versions", doc_type='Srfi', renderer='versions.mako')
+    return doc
+
+@view_config(name="revisions", doc_type='Srfi', renderer='versions.mako')
 def versions(request):
     versions = []
     for i in request.context.__context:
@@ -60,33 +54,14 @@ def versions(request):
         versions.append((doc.get('date'), doc.get('version')))
 
     return {
-        'project': 'asasd',
         'versions': versions,
         'version': request.context.get('version'),
         'title': request.context.get('title'),
         'author': request.context.get('author'),
     }
 
-@view_config(name="version", doc_type='Srfi', renderer='srfi.mako')
-def version(request):
-    doc = {}
-    version = request.subpath[0]
 
-    for i in request.context.__context:
-        if i.get('doc').get('version') == int(version):
-            doc = i.get('doc')
-
-    return {
-        'project': 'pyramid_couchdb_example',
-        'info': request.db.info(),
-        'title': doc.get('title'),
-        'author': doc.get('author'),
-        'content': markdown(doc.get('content') or ''),
-        'date': doc.get('date'),
-        'version': doc.get('version', 0)
-    }
-
-@view_config(name="save", doc_type='Srfi', renderer='srfi.mako')
+@view_config(name="save", doc_type='Srfi', renderer='srfi/show.mako')
 def save(request):
     doc = request.context
 
@@ -104,78 +79,60 @@ def save(request):
     del doc['_id']
     del doc['_rev']
 
-    page = Page(doc)
+    page = Srfi(doc)
 
     page.version = page.version + 1 if page.version else 1
     page.save()
 
-    md = Markdown(extensions=exts)
-    text = md.convert(page.content)
+    doc = process_content(page.to_json())
     
     return {
-        'project': 'pyramid_couchdb_example',
-        'info': request.db.info(),
-        'title': page.title,
-        'author': page.author,
-        'content': text,
-        'toc': md.toc,
-        'date': page.date,
-        'version': page.version
+        "ctx": doc
     }
 
-@view_config(name="edit", doc_type='Srfi', renderer='srfi.mako', request_method="POST")
-def edit_post(request):
-    doc = request.context
-    params = request.params
+@view_config(name="revision", doc_type='Srfi', renderer='srfi/show.mako')
+def version(request):
+    doc = None
+    version = request.subpath[0]
 
-    del doc['_id']
-    del doc['_rev']
+    for i in request.context.__context:
+        if i.get('doc').get('version') == int(version):
+            doc = process_content(i.get('doc'))
+
+    if not doc:
+        raise KeyError
+
+    return {
+        "ctx": doc
+    }
+
+@view_config(name="edit", doc_type='Srfi', renderer='srfi/show.mako', request_method="POST")
+def edit_post(request):
+    doc = update_doc(request.context, request.params)
 
     page = Srfi(doc)
-    page.title = params.get('title')
-    page.author = params.get('author')
-    page.content = params.get('content')
-    page.status = params.get('status')
-    page.previous = params.get('_id')
-    page.version += 1
-
     page.save()
 
-    doc = page.to_json()
-
-    md = Markdown(extensions=exts)
-    text = md.convert(doc.get('content'))
+    doc = process_content(page.to_json())
 
     return {
-        'project': 'pyramid_couchdb_example',
-        'info': request.db.info(),
-        'title': doc.get('title'),
-        'author': doc.get('author'),
-        'content': text,
-        'toc': md.toc,
-        'date': doc.get('date'),
-        'version': doc.get('version', 0)
+        "ctx": doc
     }
 
-@view_config(name="edit", doc_type='Srfi', renderer='edit.mako')
+@view_config(name="edit", doc_type='Srfi', renderer='srfi/edit.mako')
 def edit(request):
-    return request.context
-
-@view_config(doc_type='Srfi', renderer='srfi.mako')
-def show(request):
 
     doc = request.context
 
-    md = Markdown(extensions=exts)
-    text = md.convert(doc.get('content'))
+    return {
+        "ctx": doc
+    }
+
+@view_config(doc_type='Srfi', renderer='srfi/show.mako')
+def show(request):
+
+    doc = process_content(request.context)
 
     return {
-        'project': 'pyramid_couchdb_example',
-        'info': request.db.info(),
-        'title': doc.get('title'),
-        'author': doc.get('author'),
-        'content': text,
-        'toc': md.toc,
-        'date': doc.get('date'),
-        'version': doc.get('version', 0)
+        "ctx": doc
     }
