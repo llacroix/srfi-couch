@@ -23,8 +23,19 @@ def mark2(text):
     return (text, md.toc)
 
 def process_content(obj):
-    obj["content"], obj["toc"] = mark2(obj["content"])
+    obj = obj.copy()
+
+    obj["content"], obj["toc"] = map(Literal,
+                                     mark2(obj.get("content")))
+
+    obj["created"], obj["updated"] = map(int_to_datetime,
+                                         [obj.get("created"),
+                                          obj.get("updated")])
+
     return obj
+
+def int_to_datetime(timestamp):
+    return datetime.fromtimestamp(timestamp / 1e3)
 
 def datetime_to_int(thetime):
     return time.mktime(thetime.timetuple()) * 1e3
@@ -46,18 +57,20 @@ def update_doc(document, params):
 
     return doc
 
-@view_config(name="revisions", doc_type='Srfi', renderer='versions.mako')
+@view_config(name="revisions", doc_type='Srfi', renderer='srfi/versions.mako')
 def versions(request):
+
     versions = []
     for i in request.context.__context:
         doc = i.get('doc')
         versions.append((doc.get('date'), doc.get('version')))
 
+    doc = process_content(request.context)
+
     return {
         'versions': versions,
         'version': request.context.get('version'),
-        'title': request.context.get('title'),
-        'author': request.context.get('author'),
+        "ctx": doc
     }
 
 

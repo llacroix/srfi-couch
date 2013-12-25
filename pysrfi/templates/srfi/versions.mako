@@ -2,7 +2,7 @@
 
 <%block name="toco">
     <div data-spy="affix" data-offset-top="60" data-offset-bottom="200" class="bs-sidebar">
-        ${ctx.get("toc")}
+        ##${ctx.get("toc")}
     </div>
 </%block>
 
@@ -31,4 +31,4 @@
 
 <hr />
 
-${ctx.get("content")}<br />
+##${ctx.get("content")}<br />

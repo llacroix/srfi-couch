@@ -14,19 +14,23 @@ def get_resource_by_view(request, key, view):
 class Resource(dict):
     def __init__(self, request, doc):
         self.request = request
-        if doc.get('$ref'):
-            doc = request.db[doc.get('$ref')]
-
         dict.__init__(self, doc) 
 
     def __getitem__(self, key):
+
         if self.get('doc_type') == 'view':
             view_name = self.get('view')
             design_name = self.get('design')
 
             return get_resource_by_view(self.request, key, "%s/%s" % (design_name, view_name))
 
-        return Resource(self.request, self.get(key))
+        if self.get('$ref'):
+            return Resource(self.request, request.db[doc.get('$ref')])
+
+        if not key in self.keys():
+            raise KeyError
+
+        return self.get("key")
 
 class Site(object):
     def __init__(self, request):
