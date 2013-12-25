@@ -114,6 +114,12 @@
         width: auto;
       }
     }
+
+    textarea.content-editor {
+        height: 500px;
+        font-family: monospace;
+    }
+
   </style>
 
 </head>
@@ -159,8 +165,8 @@
 
 <%def name="render_column(column)">
     <div class="col-md-${column.get('size')}">
-        % for col in column.get("@content"):
-            ${render_content(col)}
+        % for elem in column.get("@content"):
+            ${render_content(elem)}
         % endfor
     </div>
 </%def>

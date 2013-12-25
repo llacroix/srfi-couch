@@ -38,7 +38,18 @@ class Resource(dict):
         dict.__init__(self, doc) 
 
     def __getitem__(self, key):
-        return get_sub_resource(self, self.request, key)
+        child = get_sub_resource(self, self.request, key)
+
+        if child:
+            child.__name__ = key
+            child.__parent__ = self
+
+            return child
+        else:
+            raise KeyError
+
+    def url(self, *args):
+        return self.request.resource_url(self, *args)
 
 class Site(object):
     def __init__(self, request):
