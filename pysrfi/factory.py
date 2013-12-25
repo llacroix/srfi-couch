@@ -11,26 +11,34 @@ def get_resource_by_view(request, key, view):
         ret.__context = pages
         return ret
 
+def get_sub_resource(self, request, key):
+    if self.get('doc_type') == 'view':
+        view_name = self.get('view')
+        design_name = self.get('design')
+
+        return get_resource_by_view(request, key, "%s/%s" % (design_name, view_name))
+
+    if not key in self.keys():
+        raise KeyError
+
+    doc = self.get(key)
+
+    if doc.get('$ref'):
+        return Resource(request, request.db[doc.get('$ref')])
+
+    if isinstance(doc, dict):
+        return Resource(request, doc)
+
+    return doc
+
+
 class Resource(dict):
     def __init__(self, request, doc):
         self.request = request
         dict.__init__(self, doc) 
 
     def __getitem__(self, key):
-
-        if self.get('doc_type') == 'view':
-            view_name = self.get('view')
-            design_name = self.get('design')
-
-            return get_resource_by_view(self.request, key, "%s/%s" % (design_name, view_name))
-
-        if self.get('$ref'):
-            return Resource(self.request, request.db[doc.get('$ref')])
-
-        if not key in self.keys():
-            raise KeyError
-
-        return self.get("key")
+        return get_sub_resource(self, self.request, key)
 
 class Site(object):
     def __init__(self, request):
@@ -40,7 +48,7 @@ class Site(object):
         self.current = request.db['root']
 
     def __getitem__(self, key):
-        resource = Resource(self.request, self.current[key])
+        resource = get_sub_resource(self.current, self.request, key)
         
         if resource:
             resource.__name__ = key
