@@ -52,6 +52,7 @@ def main(global_config, **settings):
     config.add_view_predicate('doc_type', DocumentType)
 
     config.include('pyramid_chameleon')
+    config.include('pyramid_mako')
 
     config.add_static_view('static', 'static', cache_max_age=3600)
 
