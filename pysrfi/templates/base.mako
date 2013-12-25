@@ -133,9 +133,17 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">SRFIs</a>
+          <a class="navbar-brand" href="/">SRFI+</a>
         </div>
         <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+            % if current_user:
+                <li><a href="">${current_user}</a></li>
+                <li><a href="/logout">Logout</a></li>
+            % else:
+                <li><a href="/login">Login</a></li>
+            % endif
+            </ul>
         </div><!--/.navbar-collapse -->
       </div>
     </div>

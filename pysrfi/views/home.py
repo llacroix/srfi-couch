@@ -5,7 +5,7 @@ from couchdbkit import *
 from ..factory import Site
 from ..models import Literal, Srfi
 
-@view_config(context=Site, renderer='pages/home.mako')
+@view_config(context=Site, renderer='pages/home.mako', permission="view")
 def home(request):
     return {
         "ctx": request.context

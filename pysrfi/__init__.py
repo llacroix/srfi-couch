@@ -56,6 +56,7 @@ def main(global_config, **settings):
     config.add_static_view('static', 'static', cache_max_age=3600)
 
     config.include('velruse.providers.google_hybrid')
+    config.add_route("logout", "/logout")
     #config.add_openid_login()
     config.add_google_hybrid_login()
 

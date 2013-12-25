@@ -1,5 +1,10 @@
 from pyramid.view import view_config
-from pyramid.events import subscriber, ApplicationCreated
+from pyramid.events import subscriber, ApplicationCreated, BeforeRender
+from pyramid.security import (
+        remember,
+        forget,
+        authenticated_userid,
+        )
 from couchdbkit import *
 
 @subscriber(ApplicationCreated)
@@ -31,3 +36,8 @@ def application_created_subscriber(event):
         }
 
         db.save_doc(design_doc)
+
+@subscriber(BeforeRender)
+def add_current_user(event):
+    request = event.get("request")
+    event['current_user'] = authenticated_userid(request)

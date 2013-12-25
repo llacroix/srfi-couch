@@ -57,7 +57,7 @@ def update_doc(document, params):
 
     return doc
 
-@view_config(name="revisions", doc_type='Srfi', renderer='srfi/versions.mako')
+@view_config(name="revisions", doc_type='Srfi', renderer='srfi/versions.mako', permission="view")
 def versions(request):
 
     versions = []
@@ -74,7 +74,7 @@ def versions(request):
     }
 
 
-@view_config(name="save", doc_type='Srfi', renderer='srfi/show.mako')
+@view_config(name="save", doc_type='Srfi', renderer='srfi/show.mako', permission="edit")
 def save(request):
     doc = request.context
 
@@ -119,7 +119,7 @@ def version(request):
         "ctx": doc
     }
 
-@view_config(name="edit", doc_type='Srfi', renderer='srfi/show.mako', request_method="POST")
+@view_config(name="edit", doc_type='Srfi', renderer='srfi/show.mako', request_method="POST", permission="edit")
 def edit_post(request):
     doc = update_doc(request.context, request.params)
 
@@ -132,7 +132,7 @@ def edit_post(request):
         "ctx": doc
     }
 
-@view_config(name="edit", doc_type='Srfi', renderer='srfi/edit.mako')
+@view_config(name="edit", doc_type='Srfi', renderer='srfi/edit.mako', permission="edit")
 def edit(request):
 
     doc = request.context
@@ -141,7 +141,7 @@ def edit(request):
         "ctx": doc
     }
 
-@view_config(doc_type='Srfi', renderer='srfi/show.mako')
+@view_config(doc_type='Srfi', renderer='srfi/show.mako', permission="view")
 def show(request):
 
     doc = process_content(request.context)

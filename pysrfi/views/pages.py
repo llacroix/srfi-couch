@@ -26,19 +26,28 @@ def openid_callback(request):
                }
         request.db[email] = user
 
+    response = request.response
     headers = remember(request, email)
+    response.headerlist.extend(headers)
     return HTTPFound(location="/", headers=headers)
 
     return {
         "ctx": request.context.profile
     }
 
-@view_config(doc_type="Page", renderer='pages/page.mako')
-def show_page(request):
-
-    current = authenticated_userid(request)
+@view_config(route_name="logout", renderer="json")
+def logout(request):
+    response = request.response
+    headers = forget(request)
+    response.headerlist.extend(headers)
 
     return {
-        "current_user": current,
+        "lgout": "ok"
+    } 
+
+@view_config(doc_type="Page", renderer='pages/page.mako', permission="view")
+def show_page(request):
+
+    return {
         "ctx": request.context
     }

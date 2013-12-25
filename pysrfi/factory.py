@@ -44,18 +44,31 @@ class Resource(dict):
             child.__name__ = key
             child.__parent__ = self
 
+            if child.get('@acl'):
+                child.__acl__ = child.get('@acl')
+
             return child
         else:
             raise KeyError
 
+    def __repr__(self):
+        return self.keys().__str__()
+
     def url(self, *args):
         return self.request.resource_url(self, *args)
+
+from pyramid.security import Allow
+from pyramid.security import Everyone
 
 class Site(object):
     def __init__(self, request):
         self.request = request
         self.__parent__ = None
         self.__name__ = None
+        self.__acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'g:editors', 'edit')
+        ]
         self.current = request.db['root']
 
     def __getitem__(self, key):
@@ -64,6 +77,10 @@ class Site(object):
         if resource:
             resource.__name__ = key
             resource.__parent__ = self
+
+            if resource.get('@acl'):
+                resource.__acl__ = resource.get('@acl')
+
 
             return resource
 
