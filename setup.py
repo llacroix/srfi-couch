@@ -15,6 +15,7 @@ requires = [
     'pyramid_debugtoolbar',
     'waitress',
     'velruse',
+    'markdown',
     ]
 
 setup(name='pysrfi',
