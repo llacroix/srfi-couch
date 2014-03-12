@@ -37,10 +37,10 @@ def main(global_config, **settings):
     my_session_factory = UnencryptedCookieSessionFactoryConfig('itsaseekreet')
 
     config = Configurator(root_factory=get_root,
-                          settings=settings,)
-                          #authentication_policy=authn_policy,
-                          #authorization_policy=authz_policy,
-                          #session_factory=my_session_factory)
+                          settings=settings,
+                          authentication_policy=authn_policy,
+                          authorization_policy=authz_policy,
+                          session_factory=my_session_factory)
 
     config.registry.db = Server(uri=settings['couchdb.uri'])
 
