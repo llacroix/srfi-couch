@@ -39,7 +39,8 @@ def openid_callback(request):
 def logout(request):
     response = request.response
     headers = forget(request)
-    response.headerlist.extend(headers)
+    #response.headerlist.extend(headers)
+    return HTTPFound(location="/", headers=headers)
 
     return {
         "lgout": "ok"

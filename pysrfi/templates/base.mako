@@ -141,7 +141,7 @@
                 <li><a href="">${current_user}</a></li>
                 <li><a href="/logout">Logout</a></li>
             % else:
-                <li><a href="/login">Login</a></li>
+                <li><a href="/login/google">Login</a></li>
             % endif
             </ul>
         </div><!--/.navbar-collapse -->
