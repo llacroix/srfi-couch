@@ -13,6 +13,7 @@ requires = [
     'couchdbkit',
     'pyramid_chameleon',
     'pyramid_debugtoolbar',
+    'appenlight-client',
     'waitress',
     'velruse',
     'markdown',
